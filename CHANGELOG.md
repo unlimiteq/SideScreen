@@ -14,6 +14,7 @@ First stable release.
 - Multi-touch from the tablet as real Windows touch input.
 - Mouse pointer drawn as an overlay on the tablet.
 - Options: resolution, tablet position (left/right/above/below), refresh rate, quality, touch on/off.
+- Custom resolution and custom refresh rate (24–240 Hz); new modes are added to the virtual display driver on the fly, without admin rights.
 - System tray app with status dot, Start/Stop menu and **Ctrl + Alt + S** hotkey.
 - Optional notifications for connect, disconnect and unexpected stops.
 - Connect automatically, start with Windows, close to tray; all settings remembered.

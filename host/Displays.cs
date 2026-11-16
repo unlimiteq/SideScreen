@@ -7,9 +7,8 @@ public sealed record DisplayInfo(
     string DeviceName, string AdapterName, bool IsVirtual, bool Attached, bool Primary,
     int X, int Y, int Width, int Height, int Hz)
 {
-    public string Label => IsVirtual
-        ? "Extend  ·  virtual 2nd monitor"
-        : $"Mirror  ·  {DeviceName.Replace(@"\\.\", "")}  {Width}×{Height}";
+    public string Label => IsVirtual ? "Extend" : "Mirror";
+    public string MirrorDetail => $"Mirror  ·  {DeviceName.Replace(@"\\.\", "")}  {Width}×{Height}";
 }
 
 public static unsafe class Displays
@@ -48,6 +47,15 @@ public static unsafe class Displays
 
     public static DisplayInfo? FindVirtual() => List().FirstOrDefault(d => d.IsVirtual);
     public static DisplayInfo? Find(string deviceName) => List().FirstOrDefault(d => d.DeviceName == deviceName);
+
+    /// <summary>True when the display device offers exactly this mode.</summary>
+    public static bool HasMode(string deviceName, int width, int height, int hz)
+    {
+        var dm = NewDevMode();
+        for (int i = 0; EnumDisplaySettingsEx(deviceName, i, ref dm, 0); i++)
+            if (dm.dmPelsWidth == width && dm.dmPelsHeight == height && dm.dmDisplayFrequency == hz) return true;
+        return false;
+    }
 
     // ---------- attach / detach / mode ----------
 

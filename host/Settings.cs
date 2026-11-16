@@ -7,9 +7,12 @@ namespace SideScreen;
 public sealed class Settings
 {
     public string Mode { get; set; } = "extend";   // "extend" or the device name of the mirrored display
-    public int Resolution { get; set; }            // 0 native, 1 = 2560x1600, 2 = 1920x1200
+    public int Resolution { get; set; }            // 0 native, 1 = 2560x1600, 2 = 1920x1200, 3 = custom
+    public int CustomWidth { get; set; } = 2560;
+    public int CustomHeight { get; set; } = 1600;
+    public int CustomHz { get; set; } = 100;
     public int Position { get; set; }              // 0 right, 1 left, 2 above, 3 below
-    public int Rate { get; set; }                  // 0 = 120 Hz, 1 = 90 Hz, 2 = 60 Hz
+    public int Rate { get; set; }                  // 0 = 120 Hz, 1 = 90 Hz, 2 = 60 Hz, 3 = custom
     public int Quality { get; set; } = 1;          // 0 max … 3 light
     public bool Touch { get; set; } = true;
     public bool AutoConnect { get; set; }

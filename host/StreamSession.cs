@@ -159,6 +159,10 @@ public sealed class StreamSession
             var vd = Displays.FindVirtual();
             if (vd == null) { Status?.Invoke("Virtual display driver not installed"); Thread.Sleep(1500); return; }
             int w = _opt.Width > 0 ? _opt.Width : tabW, h = _opt.Height > 0 ? _opt.Height : tabH;
+            // custom sizes / rates are added to the driver on the fly (it then reappears as a new device)
+            var modeIssue = DriverModes.Ensure(w, h, fps, Status);
+            if (modeIssue != null) Status?.Invoke("Display: " + modeIssue);
+            vd = Displays.FindVirtual() ?? vd;
             Status?.Invoke($"Creating {w}×{h} @ {fps} Hz display…");
             var modeErr = Displays.AttachAndSetMode(vd.DeviceName, w, h, fps, _opt.Position);
             _attachedVirtual = vd.DeviceName;

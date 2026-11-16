@@ -87,9 +87,9 @@ public sealed class MainForm : Form
         AddField("Refresh rate", _rate, left, 298, half);
         AddField("Quality", _quality, right, 298, half);
 
-        _res.Items.AddRange(["Native", "2560 × 1600", "1920 × 1200"]);
+        _res.Items.AddRange(["Native", "2560 × 1600", "1920 × 1200", "Custom…"]);
         _pos.Items.AddRange(["Right of PC", "Left of PC", "Above PC", "Below PC"]);
-        _rate.Items.AddRange(["120 Hz", "90 Hz", "60 Hz"]);
+        _rate.Items.AddRange(["120 Hz", "90 Hz", "60 Hz", "Custom…"]);
         _quality.Items.AddRange(["Max · 150 Mbps", "High · 80 Mbps", "Balanced · 40 Mbps", "Light · 20 Mbps"]);
 
         _touch.SetBounds(S(left), S(364), S(half), S(24));
@@ -141,7 +141,36 @@ public sealed class MainForm : Form
         _notify.Checked = _settings.Notifications;
         _hotkey.Checked = _settings.Hotkey;
         _login.Checked = Settings.RunAtLogin;
+        UpdateCustomLabels();
+        _resPrev = _res.SelectedIndex;
+        _ratePrev = _rate.SelectedIndex;
         _loading = false;
+
+        // "Custom…" opens a small dialog; cancelling it goes back to the previous choice
+        _res.SelectedIndexChanged += (_, _) =>
+        {
+            if (_loading) return;
+            if (_res.SelectedIndex == CustomIndex)
+            {
+                var r = CustomModeDialog.AskResolution(this, _settings.CustomWidth, _settings.CustomHeight);
+                if (r == null) { SetQuietly(_res, _resPrev); return; }
+                (_settings.CustomWidth, _settings.CustomHeight) = r.Value;
+                UpdateCustomLabels();
+            }
+            _resPrev = _res.SelectedIndex;
+        };
+        _rate.SelectedIndexChanged += (_, _) =>
+        {
+            if (_loading) return;
+            if (_rate.SelectedIndex == CustomIndex)
+            {
+                var hz = CustomModeDialog.AskRefreshRate(this, _settings.CustomHz);
+                if (hz == null) { SetQuietly(_rate, _ratePrev); return; }
+                _settings.CustomHz = hz.Value;
+                UpdateCustomLabels();
+            }
+            _ratePrev = _rate.SelectedIndex;
+        };
 
         foreach (var c in new[] { _mode, _res, _pos, _rate, _quality }) c.SelectedIndexChanged += (_, _) => { SaveSettings(); UpdateEnabled(); };
         foreach (var c in new[] { _touch, _auto, _closeTray, _notify }) c.CheckedChanged += (_, _) => SaveSettings();
@@ -196,6 +225,32 @@ public sealed class MainForm : Form
         DwmSetWindowAttribute(Handle, 20 /* DWMWA_USE_IMMERSIVE_DARK_MODE */, ref on, 4);
         int color = Bg.R | (Bg.G << 8) | (Bg.B << 16);
         DwmSetWindowAttribute(Handle, 35 /* DWMWA_CAPTION_COLOR */, ref color, 4);
+    }
+
+    // ---------- custom resolution / refresh rate ----------
+
+    const int CustomIndex = 3;
+    int _resPrev, _ratePrev;
+
+    void UpdateCustomLabels()
+    {
+        bool was = _loading;
+        _loading = true;
+        _res.Items[CustomIndex] = _res.SelectedIndex == CustomIndex || _settings.Resolution == CustomIndex
+            ? $"Custom · {_settings.CustomWidth} × {_settings.CustomHeight}" : "Custom…";
+        _rate.Items[CustomIndex] = _rate.SelectedIndex == CustomIndex || _settings.Rate == CustomIndex
+            ? $"Custom · {_settings.CustomHz} Hz" : "Custom…";
+        _loading = was;
+        _res.Invalidate();
+        _rate.Invalidate();
+    }
+
+    void SetQuietly(ComboBox box, int index)
+    {
+        bool was = _loading;
+        _loading = true;
+        box.SelectedIndex = Math.Max(0, index);
+        _loading = was;
     }
 
     // ---------- settings ----------
@@ -334,7 +389,9 @@ public sealed class MainForm : Form
         _loading = true;
         _displays = items;
         _mode.Items.Clear();
-        foreach (var d in items) _mode.Items.Add(d.Label);
+        // "Extend" and "Mirror"; only name the screen when there is more than one to mirror
+        bool severalScreens = items.Count(d => !d.IsVirtual) > 1;
+        foreach (var d in items) _mode.Items.Add(d.IsVirtual || !severalScreens ? d.Label : d.MirrorDetail);
         int idx = items.FindIndex(d => (d.IsVirtual ? "extend" : d.DeviceName) == wanted);
         if (items.Count > 0) _mode.SelectedIndex = idx >= 0 ? idx : 0;
         _loading = false;
@@ -355,11 +412,13 @@ public sealed class MainForm : Form
         }
         if (_mode.SelectedIndex < 0 || _mode.SelectedIndex >= _displays.Count) return;
         var target = _displays[_mode.SelectedIndex];
-        var (resW, resH) = Resolutions[Math.Clamp(_res.SelectedIndex, 0, Resolutions.Length - 1)];
+        var (resW, resH) = _res.SelectedIndex == CustomIndex
+            ? (_settings.CustomWidth, _settings.CustomHeight)
+            : Resolutions[Math.Clamp(_res.SelectedIndex, 0, Resolutions.Length - 1)];
         var opt = new StreamOptions
         {
             MirrorDevice = target.IsVirtual ? null : target.DeviceName,
-            Fps = Rates[Math.Max(0, _rate.SelectedIndex)],
+            Fps = _rate.SelectedIndex == CustomIndex ? _settings.CustomHz : Rates[Math.Clamp(_rate.SelectedIndex, 0, Rates.Length - 1)],
             BitrateMbps = Mbps[Math.Max(0, _quality.SelectedIndex)],
             Width = resW, Height = resH,
             Position = Math.Max(0, _pos.SelectedIndex),
