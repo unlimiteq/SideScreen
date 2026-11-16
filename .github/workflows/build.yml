@@ -1,0 +1,50 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Android SDK packages
+        shell: pwsh
+        run: |
+          $sdkmanager = Get-ChildItem "$env:ANDROID_HOME\cmdline-tools" -Recurse -Filter sdkmanager.bat | Select-Object -First 1 -ExpandProperty FullName
+          $yes = Join-Path $env:RUNNER_TEMP 'yes.txt'
+          [IO.File]::WriteAllText($yes, ("y`r`n" * 20))
+          cmd /c "`"$sdkmanager`" build-tools;35.0.0 platforms;android-35 platform-tools < `"$yes`"" | Select-Object -Last 2
+
+      - name: Build
+        shell: pwsh
+        run: ./build.ps1 -Package
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SideScreen-win-x64
+          path: |
+            release/*.zip
+            release/*.sha256
+          if-no-files-found: error

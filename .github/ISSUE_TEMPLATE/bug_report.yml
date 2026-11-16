@@ -1,0 +1,46 @@
+name: Bug report
+description: Something does not work as expected
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for reporting! Please check the [FAQ](https://github.com/unlimiteq/SideScreen#faq) first.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: SideScreen version
+      placeholder: v1.0.0 (shown in the window footer)
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version and GPU
+      placeholder: Windows 11 24H2, NVIDIA RTX 4070, driver 581.xx
+    validations:
+      required: true
+  - type: input
+    id: tablet
+    attributes:
+      label: Tablet / phone and Android version
+      placeholder: Galaxy Tab S8 Ultra, Android 16
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Mode
+      options: [Extend, Mirror, Both]
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: Click "Open log" in the SideScreen window and paste the relevant part. Remove anything you don't want to share.
+      render: text

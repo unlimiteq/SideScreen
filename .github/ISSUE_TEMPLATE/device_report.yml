@@ -1,0 +1,40 @@
+name: Device report
+description: Tell us how SideScreen works on your tablet or phone
+labels: [device-report]
+body:
+  - type: input
+    id: device
+    attributes:
+      label: Device and Android version
+      placeholder: Lenovo Tab P12, Android 14
+    validations:
+      required: true
+  - type: input
+    id: panel
+    attributes:
+      label: Resolution and refresh rate reached
+      placeholder: 2944 x 1840 @ 60 Hz
+    validations:
+      required: true
+  - type: input
+    id: pc
+    attributes:
+      label: PC (Windows version, GPU)
+      placeholder: Windows 11, RTX 3060
+    validations:
+      required: true
+  - type: dropdown
+    id: result
+    attributes:
+      label: Result
+      options:
+        - Works perfectly
+        - Works with issues
+        - Does not work
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Touch, Extend / Mirror, anything unusual. Use the three-finger tap stats overlay for numbers.

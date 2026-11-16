@@ -1,0 +1,32 @@
+# build output
+dist/
+release/
+host/bin/
+host/obj/
+host/app.ico
+android/build/
+capture/build/
+*.obj
+*.pdb
+
+# local toolchains (Android SDK pieces downloaded for building)
+tools/
+
+# signing keys and secrets: never commit
+*.keystore
+*.jks
+*.pfx
+*.p12
+*.pem
+*.key
+
+# logs, local settings, editor files
+*.log
+log.txt
+settings.json
+.vs/
+.vscode/
+.idea/
+*.user
+Thumbs.db
+Desktop.ini
