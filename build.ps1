@@ -95,6 +95,7 @@ Full guide: https://github.com/unlimiteq/SideScreen
     } finally { $archive.Dispose() }
     Remove-Item $stage -Recurse -Force
     $hash = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLower()
-    "$hash  $(Split-Path $zip -Leaf)" | Set-Content "$zip.sha256" -Encoding ascii
+    # LF line ending so "sha256sum -c" works on Linux / macOS / Git Bash
+    [IO.File]::WriteAllText("$zip.sha256", "$hash  $(Split-Path $zip -Leaf)`n", (New-Object Text.ASCIIEncoding))
     Write-Host "Packaged -> $zip"
 }
